@@ -1,5 +1,6 @@
 import React from "react";
 import { DCLogic } from "../runtime/logic";
+import { MODULE_TABS } from "../supermacs/ModulePage";
 import {
   INK,
   BODY,
@@ -86,7 +87,7 @@ const NAV = (() => {
 
 /* All state and behaviour for Pulse. renderVals() returns the flat object the views render from. */
 export default class PulseLogic extends DCLogic {
-  state = { w: typeof window === "undefined" ? 1440 : window.innerWidth, theme:"harbour", page:"Home", draft:"", query:"", thread:[], typed:0, paletteOpen:false, showNotifs:false, palScope:"All", palSel:0, palRecent:["Dunne & Sons Ltd","Credit Control"],
+  state = { w: typeof window === "undefined" ? 1440 : window.innerWidth, theme:"harbour", modTabs:{}, page:"Home", draft:"", query:"", thread:[], typed:0, paletteOpen:false, showNotifs:false, palScope:"All", palSel:0, palRecent:["Dunne & Sons Ltd","Credit Control"],
             done:{}, resolved:{}, approved:{}, inboxFilter:"All", approvalFilter:"Awaiting you", open:null, range:"30d",
             workDoc:null, workDocTab:"work",
             queue:"mine", recordTab:"Overview", record:"person", hovered:null, hoverLabel:"", hoverHint:"", hoverTop:0,
@@ -1998,7 +1999,7 @@ export default class PulseLogic extends DCLogic {
     };
 
     const adminModel = {
-      company: "Kilbride Group",
+      company: "Supermac's",
       urgent: [
         ["3", "employees awaiting access", AMBER, "var(--warn-soft)", "people"],
         ["1", "integration disconnected", RED, "var(--bad-soft)", "integrations"],
@@ -2543,78 +2544,83 @@ export default class PulseLogic extends DCLogic {
     const queueTasks = (st.queue === "all" ? TASKS : TASKS.filter(t => t.queue.includes(st.queue))).map(decorateTask);
 
     const APPROVALS = [
-      {id:"a1", title:"Purchase order PO-4471 — €14,280", subject:"Munster Plumbing Supplies · raised by Aoife Nolan", age:"18m", status:"awaiting you",
-       steps:[{who:"Aoife Nolan",state:"raised 08:54",dot:GREEN},{who:"Martin Kilbride",state:"pending",dot:AMBER}],
+      {id:"a2", title:"Corrected quote request: PO-1048, CHK-001", subject:"West Coast Foods Demo · raised by Conor Walsh", age:"2h", status:"awaiting you",
+       steps:[{who:"Conor Walsh",state:"raised 07:47",dot:GREEN},{who:"Aoife Kelly",state:"pending",dot:AMBER}],
+       work:{kind:"table", label:"PRICE VARIANCE", viewLabel:"View variance",
+         headline:"PO-1048 · West Coast Foods Demo", sub:"CHK-001, 10kg case · 400 cases",
+         cols:["Measure","Per case","Cases","Total"], align:["left","right","right","right"],
+         rows:[["Agreed price","€48.00","400","€19,200.00"],
+               ["Quoted price","€52.00","400","€20,800.00"],
+               ["Variance to query","€4.00","400","€1,600.00"]],
+         totals:[["Agreed value","€19,200.00"],["Quoted value","€20,800.00"],["Variance","€1,600.00"]],
+         thinking:[["Compared the quote","€52 per case against the agreed €48"],
+                   ["Checked the agreement","Price agreement for CHK-001 is on file"],
+                   ["Framed the ask","Request a corrected quote. This is a variance, not a saving"],
+                   ["Checked the action","Sending is a write action and needs a person's yes"]],
+         tools:[["records.read","read"],["files.read","read"],["email.draft","write"]],
+         risk:"Nothing is recovered until the supplier issues a corrected quote or a credit. Simulated: nothing is sent."}},
+      {id:"a5", title:"Draft payment proposal, no payable lines", subject:"Prepared by Niamh Byrne and Finance Agent · Wed 14 Oct", age:"1h", status:"awaiting you",
+       steps:[{who:"Niamh Byrne",state:"prepared 09:04",dot:GREEN},{who:"Aoife Kelly",state:"pending",dot:AMBER}],
+       work:{kind:"table", label:"PAYMENT PROPOSAL", viewLabel:"View proposal",
+         headline:"Draft proposal · 0 payable lines", sub:"A file for a person to review. No bank is connected and nothing is paid from here",
+         cols:["Item","Amount","Status","Reason"], align:["left","right","left","left"],
+         rows:[["INV-2081 Dairy Supply Demo","€3,000.00","Held","€120 dispute"],
+               ["PO-1042 Greenfield Packaging Demo","€18,000.00","Not payable","Awaiting approval"],
+               ["PO-1048 West Coast Foods Demo","€19,200.00","Not payable","Price variance"]],
+         totals:[["Payable now","€0.00"],["Held","€3,000.00"],["Not yet payable","€37,200.00"]],
+         thinking:[["Matched INV-2081","Billed 100 cases, received 96, so €120 is disputed"],
+                   ["Checked PO-1042","Approval is not delivery and not payment"],
+                   ["Checked PO-1048","Price variance is still open"],
+                   ["Checked the bank","None connected, so the proposal stays a file"]],
+         tools:[["invoices.read","read"],["receipts.read","read"],["payments.propose","write"]],
+         risk:"Releasing a payment always needs a human. Simulated: nothing can be paid from this demonstration."}},
+      {id:"a1", title:"PO-1042 · Greenfield Packaging Demo · €18,000", subject:"1,200 cases at €15 · raised by Sean Murphy", age:"1h", status:"awaiting Conor Walsh",
+       steps:[{who:"Sean Murphy",state:"raised 07:45",dot:GREEN},{who:"Conor Walsh",state:"pending",dot:AMBER}],
        work:{kind:"table", label:"PURCHASE ORDER", viewLabel:"View order",
-         headline:"PO-4471 · Munster Plumbing Supplies", sub:"Delivery Thursday 18 Sep · terms 30 days",
+         headline:"PO-1042 · Greenfield Packaging Demo", sub:"Awaiting approval · approval is not delivery and not payment",
          cols:["Line","Qty","Unit","Total"], align:["left","right","right","right"],
-         rows:[["22mm copper tube — 3m","240","€38.40","€9,216.00"],
-               ["Compression elbow 22mm","400","€4.10","€1,640.00"],
-               ["Solder ring coupler 22mm","600","€2.85","€1,710.00"],
-               ["Flux paste 350g","60","€28.57","€1,714.00"]],
-         totals:[["Net","€14,280.00"],["VAT 23% (reverse charge)","€0.00"],["Payable","€14,280.00"]],
-         thinking:[["Checked stock levels","All four lines are below reorder point"],
-                   ["Matched pricing","Unit prices equal the June supplier agreement"],
-                   ["Checked commitments","Three lines are committed to Thursday's jobs"],
-                   ["Checked threshold","€4,280 over Martin's sign-off limit, so it routed here"]],
-         tools:[["records.read","read"],["invoices.read","read"],["approvals.route","write"]],
-         risk:"No alternative supplier quote on file. Last price change was 14 June."}},
-      {id:"a2", title:"Credit limit increase — Casey Builders", subject:"€10,000 → €18,000 · raised by Niamh Cronin", age:"Yesterday", status:"awaiting you",
-       steps:[{who:"Niamh Cronin",state:"raised 16:02",dot:GREEN},{who:"Aoife Nolan",state:"approved 16:40",dot:GREEN},{who:"Martin Kilbride",state:"pending",dot:AMBER}],
-       work:{kind:"diff", label:"RECORD CHANGE", viewLabel:"View change",
-         headline:"Casey Builders Ltd · account CB-0142", sub:"Three fields change on approval, one unchanged",
-         diff:[["Credit limit","€10,000","€18,000"],["Terms","30 days","45 days"],["Risk band","B","B"],["Reviewed","14 Mar 2026","Today"]],
-         thinking:[["Read payment history","24 invoices, 22 paid on time, average 27 days"],
-                   ["Checked exposure","Current balance €7,400 — 74% of the existing limit"],
-                   ["Checked open work","€21k of quoted work would be blocked by the current limit"],
-                   ["Checked policy","Increases above €15,000 need your decision"]],
-         tools:[["records.read","read"],["invoices.read","read"],["records.update","write"]],
-         risk:"One late payment in February, 19 days over. Cleared in full."}},
-      {id:"a4", title:"Proposal — Ballincollig retrofit €62,400", subject:"Drafted by Helios · raised by Niamh Cronin", age:"3h", status:"awaiting you",
-       steps:[{who:"Niamh Cronin",state:"raised 06:10",dot:GREEN},{who:"Martin Kilbride",state:"pending",dot:AMBER}],
-       work:{kind:"doc", label:"PROPOSAL · 4 PAGES", viewLabel:"Read proposal",
-         headline:"Heating retrofit — Ballincollig depot", sub:"Prepared for Casey Builders Ltd · valid 30 days",
-         doc:[["Scope","Replace the depot's two oil boilers with a cascaded air-source system, re-balance the existing circuit and fit weather compensation controls. Work is phased over two weekends so the yard keeps running."],
-              ["Approach","Week one strips the plant room and lands the new units on the existing plinth. Week two commissions the cascade and hands over with a 12-month monitoring window."],
-              ["Commercials","€62,400 fixed price, 30% on order, 40% on plant delivery, 30% on handover. Excludes making good to the render."],
-              ["Why us","We hold the maintenance contract on the Glanmire site and carry the same plant in stock, so lead time is three weeks rather than nine."]],
-         totals:[["Plant","€38,900.00"],["Labour","€18,100.00"],["Controls and commissioning","€5,400.00"],["Total","€62,400.00"]],
-         thinking:[["Pulled the site record","Two oil boilers, 2009, last serviced March"],
-                   ["Priced from live stock","Plant is in stock at the Cork branch"],
-                   ["Reused past wording","Lifted scope language from the Glanmire proposal you approved"],
-                   ["Left a gap","No allowance for asbestos survey — flagged below"]],
-         tools:[["records.read","read"],["files.read","read"],["email.send","external"]],
-         risk:"No asbestos survey allowance. If the plant room needs one, add roughly €1,200."}},
-      {id:"a5", title:"Payment run — 14 suppliers €48,920", subject:"Scheduled by Cash Watch · Friday 19 Sep", age:"1h", status:"awaiting you",
-       steps:[{who:"Cash Watch",state:"proposed 09:40",dot:GREEN},{who:"Martin Kilbride",state:"pending",dot:AMBER}],
-       work:{kind:"table", label:"PAYMENT RUN", viewLabel:"View run",
-         headline:"Run PR-0238 · 14 payments", sub:"Leaves the AIB current account on Friday 19 Sep",
-         cols:["Supplier","Due","Invoices","Amount"], align:["left","left","right","right"],
-         rows:[["Munster Plumbing Supplies","19 Sep","3","€18,240.00"],
-               ["Tyrrell Insulation","19 Sep","1","€9,110.00"],
-               ["Kelleher Haulage","20 Sep","4","€7,480.00"],
-               ["Cork Electrical Wholesale","19 Sep","2","€6,300.00"],
-               ["10 others","19–24 Sep","11","€7,790.00"]],
-         totals:[["Run total","€48,920.00"],["Account balance after","€61,380.00"],["Held back","€2,410.00"]],
-         thinking:[["Read the ledger","31 invoices due inside seven days"],
-                   ["Held two back","Tyrrell credit note unresolved, Dineen job in dispute"],
-                   ["Checked the balance","Run leaves €61,380, above your €50k floor"],
-                   ["Checked mandates","All 14 have current SEPA mandates on file"]],
-         tools:[["invoices.read","read"],["payments.read","read"],["bank.payment.create","external"]],
-         risk:"Two invoices held back total €2,410. They will age past 60 days if not paid next run."}},
-      {id:"a3", title:"Write-off — INV-10233 €412", subject:"Glanmire Mechanical · raised by Aoife Nolan", age:"2 days", status:"approved",
-       steps:[{who:"Aoife Nolan",state:"raised",dot:GREEN},{who:"Martin Kilbride",state:"approved",dot:GREEN}],
-       work:{kind:"diff", label:"WRITE-OFF", viewLabel:"View write-off",
-         headline:"INV-10233 · Glanmire Mechanical", sub:"Two fields change on approval",
-         diff:[["Status","Past due 94 days","Written off"],["Balance","€412.00","€0.00"]],
-         thinking:[["Checked the age","94 days past due, three chases sent"],
-                   ["Checked the account","Company dissolved 12 August"],
-                   ["Checked the amount","Below your €500 write-off threshold"]],
-         tools:[["invoices.read","read"],["invoices.update","write"]],
-         risk:"None. The counterparty no longer exists."}}
+         rows:[["Packaging cases","1,200","€15.00","€18,000.00"]],
+         totals:[["Net","€18,000.00"],["Approver","Conor Walsh"],["Payable now","€0.00"]],
+         thinking:[["Read the order","1,200 cases at €15 per case"],
+                   ["Checked the approver","Over €10,000, so Conor Walsh decides"],
+                   ["Checked delivery","Nothing delivered yet"],
+                   ["Checked payment","Nothing paid. Approval does not release funds"]],
+         tools:[["records.read","read"],["approvals.route","write"]],
+         risk:"No alternative supplier quote on file for this order."}},
+      {id:"a3", title:"Transfer request: FRY-001, 36 cases to Galway Demo 01", subject:"From Central Depot Demo · drafted by Stock Agent", age:"3h", status:"awaiting Emma Ryan",
+       steps:[{who:"Stock Agent",state:"proposed 07:52",dot:GREEN},{who:"Emma Ryan",state:"pending",dot:AMBER}],
+       work:{kind:"diff", label:"STOCK TRANSFER", viewLabel:"View transfer",
+         headline:"FRY-001 · Galway Demo 01", sub:"Stock only changes on a simulated receipt",
+         diff:[["On hand at Galway Demo 01","18 cases","18 cases until receipt"],["Days of cover","1.5 days","Depends on receipt"],["Proposed transfer","None","36 cases from Central Depot Demo"]],
+         thinking:[["Read the count","18 cases on hand, 12 cases a day"],
+                   ["Compared to lead time","1.5 days of cover against 3 days"],
+                   ["Chose a source","Central Depot Demo holds enough stock"],
+                   ["Checked the action","A transfer is a write action and needs a yes"]],
+         tools:[["stock.read","read"],["transfer.draft","write"]],
+         risk:"If the transfer is late, Galway Demo 01 could run out before the next delivery."}},
+      {id:"a4", title:"Use plan: SAUCE-004 batch B-062, 80 units", subject:"€320 exposure · drafted by Stock Agent", age:"5h", status:"awaiting Sean Murphy",
+       steps:[{who:"Stock Agent",state:"proposed 07:53",dot:GREEN},{who:"Sean Murphy",state:"pending",dot:AMBER}],
+       work:{kind:"diff", label:"EXPIRY PLAN", viewLabel:"View plan",
+         headline:"SAUCE-004 · batch B-062", sub:"Expires Friday 16 October 2026 · no automatic write-off",
+         diff:[["Units","80","80 until a decision"],["Exposure","€320","€320 until a decision"],["Proposed","None","Transfer or prioritised use"]],
+         thinking:[["Read the batch","80 units at €4"],
+                   ["Checked expiry","Two days after the demo reference date"],
+                   ["Chose options","Transfer to a busier location or use first in stores"],
+                   ["Left out write-off","A write-off is a human decision"]],
+         tools:[["stock.read","read"],["transfer.draft","write"]],
+         risk:"If neither option happens by Friday the €320 is lost."}},
+      {id:"a6", title:"Manual totals from 4 stores accepted", subject:"Store feed check · raised by Emma Ryan", age:"2 days", status:"approved",
+       steps:[{who:"Emma Ryan",state:"raised",dot:GREEN},{who:"Aoife Kelly",state:"approved",dot:GREEN}],
+       work:{kind:"diff", label:"DATA EXCEPTION", viewLabel:"View exception",
+         headline:"Store feed check · 4 manual totals", sub:"110 of 114 feeds synced",
+         diff:[["Stores reporting by feed","110","110"],["Stores on manual totals","4","4, flagged in sales"]],
+         thinking:[["Checked the feeds","4 stores sent totals by hand"],
+                   ["Checked the effect","Sales is flagged as illustrative for those stores"]],
+         tools:[["records.read","read"],["records.update","write"]],
+         risk:"None. The totals are marked as manual in the sales figure."}}
     ];
     const bucketOf = (a) => a.status === "approved" ? "Decided"
-      : a.steps.some(s => s.state === "pending" && s.who === "Martin Kilbride") ? "Awaiting you" : "Awaiting others";
+      : a.steps.some(s => s.state === "pending" && s.who === "Aoife Kelly") ? "Awaiting you" : "Awaiting others";
     const APPROVAL_COUNTS = {"Awaiting you":0, "Awaiting others":0, "Decided":0};
     APPROVALS.filter(a => !st.approved[a.id]).forEach(a => { APPROVAL_COUNTS[bucketOf(a)] += 1; });
     const approvalView = st.workViews.approvals || "Awaiting you";
@@ -3112,6 +3118,11 @@ export default class PulseLogic extends DCLogic {
         () => this.setState({workSection:s.id, opsOpen:null}), String(WORK_COUNTS[s.id])));
       contextHint = "WORK · " + workSec.label.toUpperCase();
       searchHint = "Search " + workSec.label.toLowerCase();
+    } else if (MODULE_TABS[page]){
+      const cur = st.modTabs[page] || MODULE_TABS[page][0];
+      contextNav = MODULE_TABS[page].map(t => seg(t, cur === t, () => this.setState(p => ({modTabs:{...p.modTabs, [page]:t}}))));
+      contextHint = page.toUpperCase() + " · " + cur.toUpperCase();
+      searchHint = "Search " + page.toLowerCase();
     } else if (page === "Home" || page === "Dashboard"){
       contextNav = [
         seg("Home", page === "Home", () => this.go("Home")),
@@ -3231,7 +3242,8 @@ export default class PulseLogic extends DCLogic {
 
       /* dashboard */
       isDashboard: page === "Dashboard",
-      dashTitle: "Kilbride Group · " + areaLabel,
+      isModule: !!MODULE_TABS[page], modPage: page, modTab: (st.modTabs[page] || (MODULE_TABS[page] || [""])[0]),
+      dashTitle: "Supermac's · " + areaLabel,
       kpiEdit: st.kpiEdit,
       toggleKpiEdit: () => this.setState(prev => ({kpiEdit: !prev.kpiEdit})),
       kpiEditLabel: st.kpiEdit ? "Done" : "Edit KPIs",
@@ -4236,9 +4248,9 @@ export default class PulseLogic extends DCLogic {
         };
       }),
       suggestions: [
-        {label:"Which organisations are over their limit?", run:() => this.ask("Which organisations are over their credit limit?")},
-        {label:"What is overdue in my work?", run:() => this.ask("Summarise the tasks running late")},
-        {label:"What visits are booked this week?", run:() => this.ask("What site visits are booked this week?")}
+        {label:"Which stores need attention today?", run:() => this.ask("Which stores need attention today?")},
+        {label:"Explain the chicken price variance.", run:() => this.ask("Explain the chicken price variance.")},
+        {label:"What stock expires in the next 48 hours?", run:() => this.ask("What stock expires in the next 48 hours?")}
       ],
       activity: [
         {who:"Aoife Nolan", what:"raised purchase order PO-4471", event:"core.approval.created", when:"18m", dot:LIME},
@@ -4262,8 +4274,8 @@ export default class PulseLogic extends DCLogic {
       })),
       notifGroups: [["EARLIER TODAY", 0]],
       deployment: [
-        {k:"Client", v:"kilbride", font:MONO},
-        {k:"App name", v:"Kilbride Group Operations", font:"inherit"},
+        {k:"Client", v:"supermacs", font:MONO},
+        {k:"App name", v:"Supermac's Operations (demonstration)", font:"inherit"},
         {k:"Accent", v:"oklch(0.86 0.19 118)", font:MONO},
         {k:"Terminology", v:"organisation → Merchant", font:"inherit"},
         {k:"Locale", v:"EUR · Europe/Dublin", font:"inherit"},
@@ -4344,12 +4356,12 @@ export default class PulseLogic extends DCLogic {
         {label:"Agents", icon:ICONS.navAgents, go: () => this.setState({page:"Agents"})}
       ],
       composerPrompts: [
-        {label:"Chase the three invoices past 60 days", tag:"CASH", icon:ICONS.insights,
-          run: () => this.ask("Chase the three invoices past 60 days")},
-        {label:"Why did the Xero sync fail this morning?", tag:"HEALTH", icon:ICONS.health,
-          run: () => this.ask("Why did the Xero sync fail this morning?")},
-        {label:"Who should cover tomorrow's Ballincollig visit?", tag:"WORK", icon:ICONS.visits,
-          run: () => this.ask("Who should cover tomorrow's Ballincollig visit?")}
+        {label:"Show purchase orders awaiting approval.", tag:"BUY", icon:ICONS.insights,
+          run: () => this.ask("Show purchase orders awaiting approval.")},
+        {label:"Prepare the payment proposal.", tag:"PAY", icon:ICONS.health,
+          run: () => this.ask("Prepare the payment proposal.")},
+        {label:"What stock expires in the next 48 hours?", tag:"STOCK", icon:ICONS.visits,
+          run: () => this.ask("What stock expires in the next 48 hours?")}
       ].map((p, i) => Object.assign(p, {
         rowStyle: "display:flex;align-items:center;gap:13px;width:100%;padding:10px 14px;background:none;border:0;"
           + (i ? "border-top:1px solid var(--border);" : "")
